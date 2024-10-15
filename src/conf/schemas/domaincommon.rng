@@ -6922,6 +6922,11 @@
               <ref name="featurestate"/>
             </element>
           </optional>
+          <optional>
+            <element name="foo">
+              <ref name="featurestate"/>
+            </element>
+          </optional>
         </interleave>
       </element>
     </optional>
