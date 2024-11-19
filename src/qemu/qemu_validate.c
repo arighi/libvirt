@@ -5104,6 +5104,21 @@ qemuValidateDomainDeviceDefIOMMU(const virDomainIOMMUDef *iommu,
         }
         break;
 
+    case VIR_DOMAIN_IOMMU_MODEL_ACPI_INITIATOR:
+        if (!qemuDomainIsARMVirt(def)) {
+            virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                           _("IOMMU device: '%1$s' is only supported with ARM Virt machines"),
+                           virDomainIOMMUModelTypeToString(iommu->model));
+            return -1;
+        }
+        if (!virQEMUCapsGet(qemuCaps, QEMU_CAPS_MACHINE_VIRT_IOMMU)) {
+            virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                           _("IOMMU device: '%1$s' is not supported with this QEMU binary"),
+                           virDomainIOMMUModelTypeToString(iommu->model));
+            return -1;
+        }
+        break;
+
     case VIR_DOMAIN_IOMMU_MODEL_LAST:
     default:
         virReportEnumRangeError(virDomainIOMMUModel, iommu->model);
@@ -5455,6 +5470,7 @@ qemuValidateDomainDeviceDef(const virDomainDeviceDef *dev,
     case VIR_DOMAIN_DEVICE_PSTORE:
         return qemuValidateDomainDeviceDefPstore(dev->data.pstore, def, qemuCaps);
 
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
     case VIR_DOMAIN_DEVICE_LEASE:
     case VIR_DOMAIN_DEVICE_PANIC:
     case VIR_DOMAIN_DEVICE_NONE:

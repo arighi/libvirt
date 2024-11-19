@@ -2310,6 +2310,18 @@ virDomainHostdevDefValidate(const virDomainHostdevDef *hostdev)
 }
 
 
+static int
+virDomainAcpiInitiatorDefValidate(const virDomainAcpiInitiatorDef *acpiinitiator)
+{
+    if (acpiinitiator->name[0] == '\0') {
+        virReportError(VIR_ERR_INTERNAL_ERROR, "%s",
+               _("acpiinitiator must have an associated sysfs node name"));
+        return -1;
+    }
+
+    return 0;
+}
+
 /**
  * virDomainMemoryGetMappedSize:
  * @mem: memory device definition
@@ -3016,6 +3028,7 @@ virDomainIOMMUDefValidate(const virDomainIOMMUDef *iommu)
         break;
 
     case VIR_DOMAIN_IOMMU_MODEL_INTEL:
+    case VIR_DOMAIN_IOMMU_MODEL_ACPI_INITIATOR:
     case VIR_DOMAIN_IOMMU_MODEL_LAST:
         break;
     }
@@ -3032,6 +3045,7 @@ virDomainIOMMUDefValidate(const virDomainIOMMUDef *iommu)
         break;
 
     case VIR_DOMAIN_IOMMU_MODEL_VIRTIO:
+    case VIR_DOMAIN_IOMMU_MODEL_ACPI_INITIATOR:
     case VIR_DOMAIN_IOMMU_MODEL_LAST:
         break;
     }
@@ -3227,6 +3241,9 @@ virDomainDeviceDefValidateInternal(const virDomainDeviceDef *dev,
 
     case VIR_DOMAIN_DEVICE_PSTORE:
         return virDomainPstoreDefValidate(dev->data.pstore);
+
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
+        return virDomainAcpiInitiatorDefValidate(dev->data.acpiinitiator);
 
     case VIR_DOMAIN_DEVICE_LEASE:
     case VIR_DOMAIN_DEVICE_WATCHDOG:

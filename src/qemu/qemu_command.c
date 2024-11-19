@@ -975,6 +975,7 @@ qemuBuildVirtioDevGetConfigDev(const virDomainDeviceDef *device,
         case VIR_DOMAIN_DEVICE_IOMMU:
         case VIR_DOMAIN_DEVICE_AUDIO:
         case VIR_DOMAIN_DEVICE_PSTORE:
+        case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
         case VIR_DOMAIN_DEVICE_LAST:
         default:
             break;
@@ -6063,6 +6064,9 @@ qemuBuildIOMMUCommandLine(virCommand *cmd,
         /* There is no -device for SMMUv3, so nothing to be done here */
         return 0;
 
+    case VIR_DOMAIN_IOMMU_MODEL_ACPI_INITIATOR:
+        return 0;
+
     case VIR_DOMAIN_IOMMU_MODEL_LAST:
     default:
         virReportEnumRangeError(virDomainIOMMUModel, iommu->model);
@@ -6889,6 +6893,7 @@ qemuBuildMachineCommandLine(virCommand *cmd,
 
         case VIR_DOMAIN_IOMMU_MODEL_INTEL:
         case VIR_DOMAIN_IOMMU_MODEL_VIRTIO:
+        case VIR_DOMAIN_IOMMU_MODEL_ACPI_INITIATOR:
             /* These IOMMUs are formatted in qemuBuildIOMMUCommandLine */
             break;
 
@@ -10252,6 +10257,28 @@ qemuBuildPstoreCommandLine(virCommand *cmd,
     return 0;
 }
 
+static int
+qemuBuildAcpiInitiatorCommandLine(virCommand *cmd,
+                                  const virDomainDef *def,
+                                  virQEMUCaps *qemuCaps)
+{
+    g_autoptr(virJSONValue) props = NULL;
+
+    if (STREQ(def->acpiinitiator->name, "none"))
+        return 0;
+
+    if (qemuMonitorCreateObjectProps(&props,
+                                     "acpi-generic-initiator",
+                                     def->acpiinitiator->name,
+                                     NULL) < 0) {
+        return -1;
+    }
+
+    if (qemuBuildObjectCommandlineFromJSON(cmd, props, qemuCaps) < 0)
+        return -1;
+
+    return 0;
+}
 
 static int
 qemuBuildAsyncTeardownCommandLine(virCommand *cmd,
@@ -10616,6 +10643,10 @@ qemuBuildCommandLine(virDomainObj *vm,
 
     if (def->pstore &&
         qemuBuildPstoreCommandLine(cmd, def, def->pstore, qemuCaps) < 0)
+        return NULL;
+
+    if (def->acpiinitiator &&
+        qemuBuildAcpiInitiatorCommandLine(cmd, def, qemuCaps) < 0)
         return NULL;
 
     if (qemuBuildAsyncTeardownCommandLine(cmd, def, qemuCaps) < 0)

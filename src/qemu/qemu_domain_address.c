@@ -471,6 +471,7 @@ qemuDomainDeviceSupportZPCI(virDomainDeviceDef *device)
     case VIR_DOMAIN_DEVICE_AUDIO:
     case VIR_DOMAIN_DEVICE_CRYPTO:
     case VIR_DOMAIN_DEVICE_PSTORE:
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
         break;
 
     case VIR_DOMAIN_DEVICE_NONE:
@@ -819,6 +820,9 @@ qemuDomainDeviceCalculatePCIConnectFlags(virDomainDeviceDef *dev,
         return pciFlags;
     }
 
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
+        return VIR_PCI_CONNECT_TYPE_ACPI_INITIATOR;
+
     case VIR_DOMAIN_DEVICE_MEMBALLOON:
         switch (dev->data.memballoon->model) {
         case VIR_DOMAIN_MEMBALLOON_MODEL_VIRTIO_TRANSITIONAL:
@@ -943,6 +947,7 @@ qemuDomainDeviceCalculatePCIConnectFlags(virDomainDeviceDef *dev,
 
             case VIR_DOMAIN_IOMMU_MODEL_INTEL:
             case VIR_DOMAIN_IOMMU_MODEL_SMMUV3:
+            case VIR_DOMAIN_IOMMU_MODEL_ACPI_INITIATOR:
             case VIR_DOMAIN_IOMMU_MODEL_LAST:
                 /* These are not PCI devices */
                 return 0;
@@ -2367,6 +2372,7 @@ qemuDomainAssignDevicePCISlots(virDomainDef *def,
 
         case VIR_DOMAIN_IOMMU_MODEL_INTEL:
         case VIR_DOMAIN_IOMMU_MODEL_SMMUV3:
+        case VIR_DOMAIN_IOMMU_MODEL_ACPI_INITIATOR:
         case VIR_DOMAIN_IOMMU_MODEL_LAST:
             /* These are not PCI devices */
             break;

@@ -88,6 +88,7 @@ typedef enum {
     VIR_DOMAIN_DEVICE_AUDIO,
     VIR_DOMAIN_DEVICE_CRYPTO,
     VIR_DOMAIN_DEVICE_PSTORE,
+    VIR_DOMAIN_DEVICE_ACPI_INITIATOR,
 
     VIR_DOMAIN_DEVICE_LAST
 } virDomainDeviceType;
@@ -122,6 +123,7 @@ struct _virDomainDeviceDef {
         virDomainAudioDef *audio;
         virDomainCryptoDef *crypto;
         virDomainPstoreDef *pstore;
+        virDomainAcpiInitiatorDef *acpiinitiator;
     } data;
 };
 
@@ -352,6 +354,13 @@ typedef enum {
 
     VIR_DOMAIN_STARTUP_POLICY_LAST
 } virDomainStartupPolicy;
+
+struct _virDomainAcpiInitiatorDef {
+    char *name;
+    char *pcidev;
+    int numanode;
+    virDomainDeviceInfo *info; /* Guest address */
+};
 
 /* basic device for direct passthrough */
 struct _virDomainHostdevDef {
@@ -2944,6 +2953,7 @@ typedef enum {
     VIR_DOMAIN_IOMMU_MODEL_INTEL,
     VIR_DOMAIN_IOMMU_MODEL_SMMUV3,
     VIR_DOMAIN_IOMMU_MODEL_VIRTIO,
+    VIR_DOMAIN_IOMMU_MODEL_ACPI_INITIATOR,
 
     VIR_DOMAIN_IOMMU_MODEL_LAST
 } virDomainIOMMUModel;
@@ -3197,6 +3207,8 @@ struct _virDomainDef {
     /* At maximum 2 TPMs on the domain if a TPM Proxy is present. */
     size_t ntpms;
     virDomainTPMDef **tpms;
+
+    virDomainAcpiInitiatorDef *acpiinitiator;
 
     /* Only 1 */
     virDomainMemballoonDef *memballoon;
@@ -3678,6 +3690,8 @@ virDomainVideoDef *virDomainVideoDefNew(virDomainXMLOption *xmlopt);
 void virDomainVideoDefFree(virDomainVideoDef *def);
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(virDomainVideoDef, virDomainVideoDefFree);
 void virDomainVideoDefClear(virDomainVideoDef *def);
+virDomainAcpiInitiatorDef *virDomainAcpiInitiatorDefNew(void);
+void virDomainAcpiInitiatorDefFree(virDomainAcpiInitiatorDef *def);
 virDomainHostdevDef *virDomainHostdevDefNew(void);
 void virDomainHostdevDefFree(virDomainHostdevDef *def);
 void virDomainHubDefFree(virDomainHubDef *def);

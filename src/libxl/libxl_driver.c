@@ -3511,6 +3511,7 @@ libxlDomainAttachDeviceLive(libxlDriverPrivate *driver,
         case VIR_DOMAIN_DEVICE_AUDIO:
         case VIR_DOMAIN_DEVICE_CRYPTO:
         case VIR_DOMAIN_DEVICE_PSTORE:
+        case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
             virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
                            _("device type '%1$s' cannot be attached"),
                            virDomainDeviceTypeToString(dev->type));
@@ -3620,6 +3621,7 @@ libxlDomainAttachDeviceConfig(virDomainDef *vmdef, virDomainDeviceDef *dev)
         case VIR_DOMAIN_DEVICE_AUDIO:
         case VIR_DOMAIN_DEVICE_CRYPTO:
         case VIR_DOMAIN_DEVICE_PSTORE:
+        case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
             virReportError(VIR_ERR_CONFIG_UNSUPPORTED, "%s",
                            _("persistent attach of device is not supported"));
             return -1;
@@ -3989,6 +3991,7 @@ libxlDomainDetachDeviceLive(libxlDriverPrivate *driver,
         case VIR_DOMAIN_DEVICE_AUDIO:
         case VIR_DOMAIN_DEVICE_CRYPTO:
         case VIR_DOMAIN_DEVICE_PSTORE:
+        case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
             virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
                            _("device type '%1$s' cannot be detached"),
                            virDomainDeviceTypeToString(dev->type));
@@ -4080,6 +4083,7 @@ libxlDomainDetachDeviceConfig(virDomainDef *vmdef, virDomainDeviceDef *dev)
         case VIR_DOMAIN_DEVICE_AUDIO:
         case VIR_DOMAIN_DEVICE_CRYPTO:
         case VIR_DOMAIN_DEVICE_PSTORE:
+        case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
             virReportError(VIR_ERR_CONFIG_UNSUPPORTED, "%s",
                            _("persistent detach of device is not supported"));
             return -1;
@@ -4143,6 +4147,7 @@ libxlDomainUpdateDeviceLive(virDomainObj *vm, virDomainDeviceDef *dev)
         case VIR_DOMAIN_DEVICE_AUDIO:
         case VIR_DOMAIN_DEVICE_CRYPTO:
         case VIR_DOMAIN_DEVICE_PSTORE:
+        case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
             virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
                            _("device type '%1$s' cannot be updated"),
                            virDomainDeviceTypeToString(dev->type));
@@ -4206,6 +4211,7 @@ libxlDomainUpdateDeviceConfig(virDomainDef *vmdef, virDomainDeviceDef *dev)
         case VIR_DOMAIN_DEVICE_AUDIO:
         case VIR_DOMAIN_DEVICE_CRYPTO:
         case VIR_DOMAIN_DEVICE_PSTORE:
+        case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
             virReportError(VIR_ERR_CONFIG_UNSUPPORTED, "%s",
                            _("persistent update of device is not supported"));
             return -1;
