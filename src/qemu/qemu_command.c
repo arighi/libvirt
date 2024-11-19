@@ -975,6 +975,7 @@ qemuBuildVirtioDevGetConfigDev(const virDomainDeviceDef *device,
         case VIR_DOMAIN_DEVICE_IOMMU:
         case VIR_DOMAIN_DEVICE_AUDIO:
         case VIR_DOMAIN_DEVICE_PSTORE:
+        case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
         case VIR_DOMAIN_DEVICE_LAST:
         default:
             break;
@@ -10263,6 +10264,18 @@ qemuBuildPstoreCommandLine(virCommand *cmd,
     return 0;
 }
 
+static int
+qemuBuildAcpiInitiatorCommandLine(virCommand *cmd,
+                                  const virDomainAcpiInitiatorDef *acpiinitiator)
+{
+    g_autofree char *obj = NULL;
+
+    obj = g_strdup_printf("acpi-generic-initiator,id=%s,pci-dev=%s,node=%d",
+                          acpiinitiator->name, acpiinitiator->pciDev, acpiinitiator->numaNode);
+    virCommandAddArgList(cmd, "-object", obj, NULL);
+
+    return 0;
+}
 
 static int
 qemuBuildAsyncTeardownCommandLine(virCommand *cmd,
@@ -10628,6 +10641,11 @@ qemuBuildCommandLine(virDomainObj *vm,
     if (def->pstore &&
         qemuBuildPstoreCommandLine(cmd, def, def->pstore, qemuCaps) < 0)
         return NULL;
+
+    for (i = 0; i < def->nacpiinitiator; i++) {
+        if (qemuBuildAcpiInitiatorCommandLine(cmd, def->acpiinitiator[i]) < 0)
+            return NULL;
+    }
 
     if (qemuBuildAsyncTeardownCommandLine(cmd, def, qemuCaps) < 0)
         return NULL;
