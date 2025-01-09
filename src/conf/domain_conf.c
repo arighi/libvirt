@@ -3528,6 +3528,10 @@ void virDomainAcpiInitiatorDefFree(virDomainAcpiInitiatorDef *def)
     if (!def)
         return;
 
+    VIR_FREE(def->name);
+    VIR_FREE(def->pciDev);
+    VIR_FREE(def->numaNodes);
+
     virDomainDeviceInfoFree(def->info);
 }
 
@@ -13411,6 +13415,7 @@ virDomainAcpiInitiatorDefParseXML(virDomainXMLOption *xmlopt,
 {
     virDomainAcpiInitiatorDef *def;
     xmlNodePtr cur;
+    size_t numaCount = 0;
 
     VIR_XPATH_NODE_AUTORESTORE(ctxt)
 
@@ -13420,6 +13425,20 @@ virDomainAcpiInitiatorDefParseXML(virDomainXMLOption *xmlopt,
         goto error;
 
     for (cur = node->children; cur; cur = cur->next) {
+        if (cur->type == XML_ELEMENT_NODE &&
+            xmlStrEqual(cur->name, BAD_CAST "numa-node"))
+            numaCount++;
+    }
+
+    if (numaCount > 0) {
+        def->numaNodes = calloc(numaCount, sizeof(*def->numaNodes));
+        if (!def->numaNodes)
+            goto error;
+        def->numaNodeCount = numaCount;
+    }
+
+    numaCount = 0;
+    for (cur = node->children; cur; cur = cur->next) {
 	if (cur->type != XML_ELEMENT_NODE)
 		continue;
 
@@ -13428,19 +13447,24 @@ virDomainAcpiInitiatorDefParseXML(virDomainXMLOption *xmlopt,
             if (!def->name)
                 goto error;
         } else if (xmlStrEqual(cur->name, BAD_CAST "pci-dev")) {
-            def->pcidev = virXMLNodeContentString(cur);
-            if (!def->pcidev)
+            def->pciDev = virXMLNodeContentString(cur);
+            if (!def->pciDev)
                 goto error;
         } else if (xmlStrEqual(cur->name, BAD_CAST "numa-node")) {
-            xmlChar *content = xmlNodeGetContent(cur);
+            xmlChar *content;
+	    int numaNode;
 
+            content = xmlNodeGetContent(cur);
             if (!content)
                 goto error;
-            if (virStrToLong_i((const char *)content, NULL, 10, &def->numanode) < 0) {
+
+            if (virStrToLong_i((const char *)content, NULL, 10, &numaNode) < 0) {
                 xmlFree(content);
                 goto error;
             }
             xmlFree(content);
+
+            def->numaNodes[numaCount++] = numaNode;
         }
     }
 
@@ -13449,6 +13473,7 @@ virDomainAcpiInitiatorDefParseXML(virDomainXMLOption *xmlopt,
                                         flags) < 0)
             goto error;
     }
+
     return def;
 
  error:
@@ -28364,14 +28389,17 @@ virDomainPstoreDefFormat(virBuffer *buf,
 
 static int
 virDomainAcpiInitiatorDefFormat(virBuffer *buf,
-                         virDomainAcpiInitiatorDef *acpiinitiator)
+                                virDomainAcpiInitiatorDef *acpiinitiator)
 {
     g_auto(virBuffer) attrBuf = VIR_BUFFER_INITIALIZER;
     g_auto(virBuffer) childBuf = VIR_BUFFER_INIT_CHILD(buf);
 
     virBufferAsprintf(&childBuf, "<alias name=\"%s\" />\n", acpiinitiator->name);
-    virBufferAsprintf(&childBuf, "<pci-dev>%s</pci-dev>\n", acpiinitiator->pcidev);
-    virBufferAsprintf(&childBuf, "<numa-node>%d</numa-node>\n", acpiinitiator->numanode);
+    virBufferAsprintf(&childBuf, "<pci-dev>%s</pci-dev>\n", acpiinitiator->pciDev);
+
+    for (size_t i = 0; i < acpiinitiator->numaNodeCount; i++) {
+        virBufferAsprintf(&childBuf, "<numa-node>%d</numa-node>\n", acpiinitiator->numaNodes[i]);
+    }
 
     virXMLFormatElement(buf, "acpi-generic-initiator", &attrBuf, &childBuf);
 

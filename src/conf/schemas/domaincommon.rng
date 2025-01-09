@@ -7623,9 +7623,13 @@
         <element name="pci-dev">
           <text/>
         </element>
-        <element name="numa-node">
-          <text/>
-        </element>
+        <group>
+          <zeroOrMore>
+            <element name="numa-node">
+              <text/>
+            </element>
+          </zeroOrMore>
+        </group>
       </interleave>
     </element>
   </define>

@@ -357,8 +357,9 @@ typedef enum {
 
 struct _virDomainAcpiInitiatorDef {
     char *name;
-    char *pcidev;
-    int numanode;
+    char *pciDev;
+    int *numaNodes;            /* Array of NUMA node IDs */
+    size_t numaNodeCount;      /* Number of NUMA nodes */
     virDomainDeviceInfo *info; /* Guest address */
 };
 
