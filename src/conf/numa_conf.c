@@ -1498,6 +1498,9 @@ virDomainNumaFillCPUsInNode(virDomainNuma *numa,
     if (node >= virDomainNumaGetNodeCount(numa))
         return -1;
 
+    if (virDomainNumaGetNodeMemorySize(numa, node) == 0)
+        return 0;
+
     virBitmapSetAll(maxCPUsBitmap);
 
     for (i = 0; i < numa->nmem_nodes; i++) {
