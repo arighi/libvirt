@@ -342,6 +342,7 @@ VIR_ENUM_IMPL(virDomainDevice,
               "audio",
               "crypto",
               "pstore",
+              "acpiinitiator",
 );
 
 VIR_ENUM_IMPL(virDomainDiskDevice,
@@ -3727,6 +3728,9 @@ void virDomainDeviceDefFree(virDomainDeviceDef *def)
     case VIR_DOMAIN_DEVICE_PSTORE:
         virDomainPstoreDefFree(def->data.pstore);
         break;
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
+        virDomainAcpiInitiatorDefFree(def->data.acpiinitiator);
+        break;
     case VIR_DOMAIN_DEVICE_LAST:
     case VIR_DOMAIN_DEVICE_NONE:
         break;
@@ -4705,6 +4709,8 @@ virDomainDeviceGetInfo(const virDomainDeviceDef *device)
         return &device->data.crypto->info;
     case VIR_DOMAIN_DEVICE_PSTORE:
         return &device->data.pstore->info;
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
+        return device->data.acpiinitiator->info;
 
     /* The following devices do not contain virDomainDeviceInfo */
     case VIR_DOMAIN_DEVICE_LEASE:
@@ -4812,6 +4818,9 @@ virDomainDeviceSetData(virDomainDeviceDef *device,
         break;
     case VIR_DOMAIN_DEVICE_PSTORE:
         device->data.pstore = devicedata;
+        break;
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
+        device->data.acpiinitiator = devicedata;
         break;
     case VIR_DOMAIN_DEVICE_NONE:
     case VIR_DOMAIN_DEVICE_LAST:
@@ -5038,6 +5047,13 @@ virDomainDeviceInfoIterateFlags(virDomainDef *def,
             return rc;
     }
 
+    device.type = VIR_DOMAIN_DEVICE_ACPI_INITIATOR;
+    for (i = 0; i < def->nacpiinitiator; i++) {
+        device.data.acpiinitiator = def->acpiinitiator[i];
+        if ((rc = cb(def, &device, def->acpiinitiator[i]->info, opaque)) != 0)
+            return rc;
+    }
+
     /* If the flag below is set, make sure @cb can handle @info being NULL */
     if (iteratorFlags & DOMAIN_DEVICE_ITERATE_MISSING_INFO) {
         device.type = VIR_DOMAIN_DEVICE_GRAPHICS;
@@ -5098,6 +5114,7 @@ virDomainDeviceInfoIterateFlags(virDomainDef *def,
     case VIR_DOMAIN_DEVICE_AUDIO:
     case VIR_DOMAIN_DEVICE_CRYPTO:
     case VIR_DOMAIN_DEVICE_PSTORE:
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
         break;
     }
 #endif
@@ -13685,6 +13702,65 @@ virDomainHostdevDefParseXML(virDomainXMLOption *xmlopt,
 }
 
 
+static virDomainAcpiInitiatorDef *
+virDomainAcpiInitiatorDefParseXML(virDomainXMLOption *xmlopt,
+                                  xmlNodePtr node,
+                                  xmlXPathContextPtr ctxt,
+                                  unsigned int flags)
+{
+    virDomainAcpiInitiatorDef *def;
+    g_autofree char *tmp = NULL;
+
+    VIR_XPATH_NODE_AUTORESTORE(ctxt)
+
+    ctxt->node = node;
+
+    def = virDomainAcpiInitiatorDefNew();
+
+    def->name = virXPathString("string(./alias/@name)", ctxt);
+    if (!def->name) {
+        virReportError(VIR_ERR_XML_ERROR, "%s",
+                       _("missing initiator name"));
+        goto error;
+    }
+
+    def->pciDev = virXPathString("string(./pci-dev)", ctxt);
+    if (!def->pciDev) {
+        virReportError(VIR_ERR_XML_ERROR, "%s",
+                       _("missing initiator pci-dev"));
+        goto error;
+    }
+
+    tmp = virXPathString("string(./numa-node)", ctxt);
+    if (tmp) {
+        if (virStrToLong_i((const char *)tmp, NULL, 10, &def->numaNode) < 0) {
+            virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                           _("invalid value for numa-node: '%1$s'"), tmp);
+            goto error;
+        }
+    } else {
+        virReportError(VIR_ERR_XML_ERROR, "%s",
+                       _("missing initiator numa-node"));
+        goto error;
+    }
+
+    if (def->info->type == VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE) {
+        if (virDomainDeviceInfoParseXML(xmlopt, node, ctxt, def->info,
+                                        flags) < 0) {
+            virReportError(VIR_ERR_XML_ERROR, "%s",
+                           _("failed to parse device information"));
+            goto error;
+        }
+    }
+
+    return def;
+
+ error:
+    virDomainAcpiInitiatorDefFree(def);
+    return NULL;
+}
+
+
 static virDomainRedirdevDef *
 virDomainRedirdevDefParseXML(virDomainXMLOption *xmlopt,
                              xmlNodePtr node,
@@ -14683,6 +14759,12 @@ virDomainDeviceDefParse(const char *xmlStr,
     case VIR_DOMAIN_DEVICE_PSTORE:
         if (!(dev->data.pstore = virDomainPstoreDefParseXML(xmlopt, node,
                                                             ctxt, flags))) {
+            return NULL;
+        }
+        break;
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
+        if (!(dev->data.acpiinitiator = virDomainAcpiInitiatorDefParseXML(xmlopt, node,
+                                                                          ctxt, flags))) {
             return NULL;
         }
         break;
@@ -20095,6 +20177,23 @@ virDomainDefParseXML(xmlXPathContextPtr ctxt,
     }
     VIR_FREE(nodes);
 
+    /* analysis of the acpi generic initiator */
+    if ((n = virXPathNodeSet("./devices/acpi-generic-initiator", ctxt, &nodes)) < 0)
+        return NULL;
+
+    def->acpiinitiator = g_new0(virDomainAcpiInitiatorDef *, n);
+
+    for (i = 0; i < n; i++) {
+        virDomainAcpiInitiatorDef *acpiinitiator;
+
+        acpiinitiator = virDomainAcpiInitiatorDefParseXML(xmlopt, nodes[i], ctxt, flags);
+        if (!acpiinitiator)
+            return NULL;
+
+        def->acpiinitiator[def->nacpiinitiator++] = acpiinitiator;
+    }
+    VIR_FREE(nodes);
+
     /* analysis of the user namespace mapping */
     if ((n = virXPathNodeSet("./idmap/uid", ctxt, &nodes)) < 0)
         return NULL;
@@ -21017,6 +21116,17 @@ virDomainHostdevDefCheckABIStability(virDomainHostdevDef *src,
         }
     }
 
+    if (!virDomainDeviceInfoCheckABIStability(src->info, dst->info))
+        return false;
+
+    return true;
+}
+
+
+static bool
+virDomainAcpiInitiatorDefCheckABIStability(virDomainAcpiInitiatorDef *src,
+                                           virDomainAcpiInitiatorDef *dst)
+{
     if (!virDomainDeviceInfoCheckABIStability(src->info, dst->info))
         return false;
 
@@ -22372,6 +22482,12 @@ virDomainDefCheckABIStabilityFlags(virDomainDef *src,
             goto error;
     }
 
+    for (i = 0; i < src->nacpiinitiator; i++) {
+        if (!virDomainAcpiInitiatorDefCheckABIStability(src->acpiinitiator[i],
+                                                        dst->acpiinitiator[i]))
+            goto error;
+    }
+
     if ((!src->redirfilter && dst->redirfilter) ||
         (src->redirfilter && !dst->redirfilter)) {
         virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
@@ -22542,6 +22658,7 @@ virDomainDefCheckABIStabilityFlags(virDomainDef *src,
     case VIR_DOMAIN_DEVICE_AUDIO:
     case VIR_DOMAIN_DEVICE_CRYPTO:
     case VIR_DOMAIN_DEVICE_PSTORE:
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
         break;
     }
 #endif
@@ -28762,6 +28879,18 @@ virDomainPstoreDefFormat(virBuffer *buf,
     return 0;
 }
 
+static void
+virDomainAcpiInitiatorDefFormat(virBuffer *buf,
+                                virDomainAcpiInitiatorDef *acpiinitiator)
+{
+    g_auto(virBuffer) childBuf = VIR_BUFFER_INIT_CHILD(buf);
+
+    virBufferEscapeString(&childBuf, "<alias name=\"%s\"/>\n", acpiinitiator->name);
+    virBufferEscapeString(&childBuf, "<pci-dev>%s</pci-dev>\n", acpiinitiator->pciDev);
+    virBufferAsprintf(&childBuf, "<numa-node>%d</numa-node>\n", acpiinitiator->numaNode);
+
+    virXMLFormatElement(buf, "acpi-generic-initiator", NULL, &childBuf);
+}
 
 int
 virDomainDefFormatInternal(virDomainDef *def,
@@ -29246,6 +29375,9 @@ virDomainDefFormatInternalSetRootName(virDomainDef *def,
     if (def->pstore)
         virDomainPstoreDefFormat(buf, def->pstore, flags);
 
+    for (n = 0; n < def->nacpiinitiator; n++)
+        virDomainAcpiInitiatorDefFormat(buf, def->acpiinitiator[n]);
+
     virBufferAdjustIndent(buf, -2);
     virBufferAddLit(buf, "</devices>\n");
 
@@ -29406,6 +29538,7 @@ virDomainDeviceIsUSB(virDomainDeviceDef *dev,
     case VIR_DOMAIN_DEVICE_AUDIO:
     case VIR_DOMAIN_DEVICE_CRYPTO:
     case VIR_DOMAIN_DEVICE_PSTORE:
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
     break;
     }
 

@@ -7718,7 +7718,7 @@
           </attribute>
         </element>
         <element name="pci-dev">
-          <ref name="alias"/>
+          <ref name="aliasName"/>
         </element>
         <element name="numa-node">
           <ref name="unsignedInt"/>
