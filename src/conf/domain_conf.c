@@ -3457,6 +3457,19 @@ virDomainHostdevDefNew(void)
 }
 
 
+virDomainAcpiInitiatorDef *
+virDomainAcpiInitiatorDefNew(void)
+{
+    virDomainAcpiInitiatorDef *def;
+
+    def = g_new0(virDomainAcpiInitiatorDef, 1);
+
+    def->info = g_new0(virDomainDeviceInfo, 1);
+
+    return def;
+}
+
+
 static virDomainTPMDef *
 virDomainTPMDefNew(virDomainXMLOption *xmlopt)
 {
@@ -3515,6 +3528,18 @@ void virDomainHostdevDefFree(virDomainHostdevDef *def)
      */
     if (!def->parentnet)
         g_free(def);
+}
+
+void virDomainAcpiInitiatorDefFree(virDomainAcpiInitiatorDef *def)
+{
+    if (!def)
+        return;
+
+    VIR_FREE(def->name);
+    VIR_FREE(def->pciDev);
+
+    virDomainDeviceInfoFree(def->info);
+    g_free(def);
 }
 
 void virDomainHubDefFree(virDomainHubDef *def)

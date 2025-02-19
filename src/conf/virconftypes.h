@@ -118,6 +118,8 @@ typedef struct _virDomainHostdevCaps virDomainHostdevCaps;
 
 typedef struct _virDomainHostdevDef virDomainHostdevDef;
 
+typedef struct _virDomainAcpiInitiatorDef virDomainAcpiInitiatorDef;
+
 typedef struct _virDomainHostdevSubsys virDomainHostdevSubsys;
 
 typedef struct _virDomainHostdevSubsysMediatedDev virDomainHostdevSubsysMediatedDev;
