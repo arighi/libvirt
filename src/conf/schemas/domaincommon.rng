@@ -7707,13 +7707,8 @@
   <define name="acpi-generic-initiator">
     <element name="acpi-generic-initiator">
       <interleave>
-        <element name="alias">
-          <attribute name="name">
-            <ref name="objectName"/>
-          </attribute>
-        </element>
         <element name="pci-dev">
-          <ref name="alias"/>
+          <ref name="aliasName"/>
         </element>
         <element name="numa-node">
           <ref name="unsignedInt"/>

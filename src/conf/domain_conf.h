@@ -88,6 +88,7 @@ typedef enum {
     VIR_DOMAIN_DEVICE_AUDIO,
     VIR_DOMAIN_DEVICE_CRYPTO,
     VIR_DOMAIN_DEVICE_PSTORE,
+    VIR_DOMAIN_DEVICE_ACPI_INITIATOR,
 
     VIR_DOMAIN_DEVICE_LAST
 } virDomainDeviceType;
@@ -355,10 +356,9 @@ typedef enum {
 } virDomainStartupPolicy;
 
 struct _virDomainAcpiInitiatorDef {
-    char *name;
     char *pciDev;
     int numaNode;
-    virDomainDeviceInfo *info; /* Guest address */
+    virDomainDeviceInfo info;
 };
 
 /* basic device for direct passthrough */
@@ -3756,6 +3756,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC(virDomainVideoDef, virDomainVideoDefFree);
 void virDomainVideoDefClear(virDomainVideoDef *def);
 virDomainAcpiInitiatorDef *virDomainAcpiInitiatorDefNew(void);
 void virDomainAcpiInitiatorDefFree(virDomainAcpiInitiatorDef *def);
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(virDomainAcpiInitiatorDef, virDomainAcpiInitiatorDefFree);
 virDomainHostdevDef *virDomainHostdevDefNew(void);
 void virDomainHostdevDefFree(virDomainHostdevDef *def);
 void virDomainHubDefFree(virDomainHubDef *def);

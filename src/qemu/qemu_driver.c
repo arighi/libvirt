@@ -6908,6 +6908,7 @@ qemuDomainAttachDeviceConfig(virDomainDef *vmdef,
     case VIR_DOMAIN_DEVICE_AUDIO:
     case VIR_DOMAIN_DEVICE_CRYPTO:
     case VIR_DOMAIN_DEVICE_PSTORE:
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
     case VIR_DOMAIN_DEVICE_LAST:
          virReportError(VIR_ERR_OPERATION_UNSUPPORTED,
                         _("persistent attach of device '%1$s' is not supported"),
@@ -7127,6 +7128,7 @@ qemuDomainDetachDeviceConfig(virDomainDef *vmdef,
     case VIR_DOMAIN_DEVICE_AUDIO:
     case VIR_DOMAIN_DEVICE_CRYPTO:
     case VIR_DOMAIN_DEVICE_PSTORE:
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
     case VIR_DOMAIN_DEVICE_LAST:
         virReportError(VIR_ERR_OPERATION_UNSUPPORTED,
                        _("persistent detach of device '%1$s' is not supported"),
@@ -7253,6 +7255,7 @@ qemuDomainUpdateDeviceConfig(virDomainDef *vmdef,
     case VIR_DOMAIN_DEVICE_AUDIO:
     case VIR_DOMAIN_DEVICE_CRYPTO:
     case VIR_DOMAIN_DEVICE_PSTORE:
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
     case VIR_DOMAIN_DEVICE_LAST:
         virReportError(VIR_ERR_OPERATION_UNSUPPORTED,
                        _("persistent update of device '%1$s' is not supported"),

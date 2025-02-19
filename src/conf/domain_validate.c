@@ -2375,6 +2375,40 @@ virDomainHostdevDefValidate(const virDomainHostdevDef *hostdev)
 }
 
 
+static int
+virDomainAcpiInitiatorDefValidate(const virDomainDef *def,
+                                  const virDomainAcpiInitiatorDef *acpiinitiator)
+{
+    const size_t nodeCount = virDomainNumaGetNodeCount(def->numa);
+
+    if (!nodeCount) {
+        virReportError(VIR_ERR_XML_DETAIL, "%s",
+                       _("No NUMA node defined"));
+        return -1;
+    }
+
+    if (acpiinitiator->numaNode >= nodeCount) {
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED,
+                       _("invalid acpi-generic-initiator NUMA node %1$u"),
+                       acpiinitiator->numaNode);
+        return -1;
+    }
+
+    if (acpiinitiator->pciDev[0] == '\0') {
+        virReportError(VIR_ERR_XML_DETAIL, "%s",
+                       _("acpi-generic-initiator must have a PCI device assigned"));
+        return -1;
+    }
+
+    if (acpiinitiator->info.type != VIR_DOMAIN_DEVICE_ADDRESS_TYPE_NONE) {
+        virReportError(VIR_ERR_XML_DETAIL, "%s",
+                       _("acpi-generic-initiator must have a device address type None"));
+        return -1;
+    }
+
+    return 0;
+}
+
 /**
  * virDomainMemoryGetMappedSize:
  * @mem: memory device definition
@@ -3292,6 +3326,9 @@ virDomainDeviceDefValidateInternal(const virDomainDeviceDef *dev,
 
     case VIR_DOMAIN_DEVICE_PSTORE:
         return virDomainPstoreDefValidate(dev->data.pstore);
+
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
+        return virDomainAcpiInitiatorDefValidate(def, dev->data.acpiinitiator);
 
     case VIR_DOMAIN_DEVICE_LEASE:
     case VIR_DOMAIN_DEVICE_WATCHDOG:
