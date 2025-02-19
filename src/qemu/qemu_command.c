@@ -10292,6 +10292,26 @@ qemuBuildPstoreCommandLine(virCommand *cmd,
     return 0;
 }
 
+static int
+qemuBuildAcpiInitiatorCommandLine(virCommand *cmd,
+                                  const virDomainAcpiInitiatorDef *acpiinitiator,
+                                  virQEMUCaps *qemuCaps)
+{
+    g_autoptr(virJSONValue) props = NULL;
+
+    if (virJSONValueObjectAdd(&props,
+                             "s:qom-type", "acpi-generic-initiator",
+                             "s:id", acpiinitiator->name,
+                             "s:pci-dev", acpiinitiator->pciDev,
+                             "i:node", acpiinitiator->numaNode,
+                             NULL) < 0)
+        return -1;
+
+    if (qemuBuildObjectCommandlineFromJSON(cmd, props, qemuCaps) < 0)
+        return -1;
+
+    return 0;
+}
 
 static int
 qemuBuildAsyncTeardownCommandLine(virCommand *cmd,
@@ -10657,6 +10677,11 @@ qemuBuildCommandLine(virDomainObj *vm,
     if (def->pstore &&
         qemuBuildPstoreCommandLine(cmd, def, def->pstore, qemuCaps) < 0)
         return NULL;
+
+    for (i = 0; i < def->nacpiinitiator; i++) {
+        if (qemuBuildAcpiInitiatorCommandLine(cmd, def->acpiinitiator[i], qemuCaps) < 0)
+            return NULL;
+    }
 
     if (qemuBuildAsyncTeardownCommandLine(cmd, def, qemuCaps) < 0)
         return NULL;
