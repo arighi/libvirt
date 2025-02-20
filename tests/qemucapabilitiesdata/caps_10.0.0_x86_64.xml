@@ -207,6 +207,7 @@
   <flag name='blockdev-set-active'/>
   <flag name='shim'/>
   <flag name='virtio-scsi.iothread-mapping'/>
+  <flag name='acpi-generic-initiator'/>
   <version>9002050</version>
   <microcodeVersion>43100285</microcodeVersion>
   <package>v9.2.0-2799-g0462a32b4f</package>
