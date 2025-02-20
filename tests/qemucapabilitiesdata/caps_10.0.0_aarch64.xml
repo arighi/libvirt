@@ -161,6 +161,7 @@
   <flag name='shim'/>
   <flag name='virtio-scsi.iothread-mapping'/>
   <flag name='machine.virt.highmem-mmio-size'/>
+  <flag name='acpi-generic-initiator'/>
   <version>10000000</version>
   <microcodeVersion>61700285</microcodeVersion>
   <package>v10.0.0</package>
