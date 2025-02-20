@@ -210,6 +210,7 @@
   <flag name='intel-iommu.dma-translation'/>
   <flag name='machine-i8042-opt'/>
   <flag name='snapshot-internal-qmp'/>
+  <flag name='acpi-generic-initiator'/>
   <version>9000000</version>
   <microcodeVersion>43100245</microcodeVersion>
   <package>v9.0.0</package>
