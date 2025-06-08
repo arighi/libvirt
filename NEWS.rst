@@ -24,6 +24,14 @@ v11.5.0 (unreleased)
 
 * **New features**
 
+  * qemu: Introduce acpi-generic-initiator device
+
+    To support NVIDIA Multi-Instance GPU (MIG) configurations, libvirt now
+    supports the ``acpi-generic-initiator`` device. MIG allows partitioning
+    a physical GPU into multiple isolated instances, each associated with a
+    separate virtual NUMA node. The ``acpi-generic-initiator`` device is
+    required by QEMU to represent these virtual NUMA nodes correctly in ACPI.
+
 * **Improvements**
 
 * **Bug fixes**
