@@ -44,4 +44,12 @@ XDG_CONFIG_HOME=/var/lib/libvirt/qemu/domain--1-QEMUGuest2/.config \
 -device '{"driver":"vfio-pci","host":"0000:06:12.1","id":"hostdev0","bus":"pcie.0","addr":"0x2"}' \
 -device '{"driver":"virtio-balloon-pci","id":"balloon0","bus":"pcie.0","addr":"0x6"}' \
 -sandbox on,obsolete=deny,elevateprivileges=deny,spawn=deny,resourcecontrol=deny \
+-object '{"qom-type":"acpi-generic-initiator","id":"gi0","pci-dev":"hostdev0","node":1}' \
+-object '{"qom-type":"acpi-generic-initiator","id":"gi1","pci-dev":"hostdev0","node":2}' \
+-object '{"qom-type":"acpi-generic-initiator","id":"gi2","pci-dev":"hostdev0","node":3}' \
+-object '{"qom-type":"acpi-generic-initiator","id":"gi3","pci-dev":"hostdev0","node":4}' \
+-object '{"qom-type":"acpi-generic-initiator","id":"gi4","pci-dev":"hostdev0","node":5}' \
+-object '{"qom-type":"acpi-generic-initiator","id":"gi5","pci-dev":"hostdev0","node":6}' \
+-object '{"qom-type":"acpi-generic-initiator","id":"gi6","pci-dev":"hostdev0","node":7}' \
+-object '{"qom-type":"acpi-generic-initiator","id":"gi7","pci-dev":"hostdev0","node":8}' \
 -msg timestamp=on
