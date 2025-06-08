@@ -681,6 +681,14 @@ qemuAssignDevicePstoreAlias(virDomainPstoreDef *pstore)
         pstore->info.alias = g_strdup("pstore0");
 }
 
+static void
+qemuAssignDeviceAcpiInitiatorAlias(virDomainAcpiInitiatorDef *acpiinitiator,
+                                   int idx)
+{
+    if (!acpiinitiator->info.alias)
+        acpiinitiator->info.alias = g_strdup_printf("gi%d", idx);
+}
+
 
 int
 qemuAssignDeviceAliases(virDomainDef *def)
@@ -773,6 +781,9 @@ qemuAssignDeviceAliases(virDomainDef *def)
     }
     if (def->pstore)
         qemuAssignDevicePstoreAlias(def->pstore);
+    for (i = 0; i < def->nacpiinitiator; i++) {
+        qemuAssignDeviceAcpiInitiatorAlias(def->acpiinitiator[i], i);
+    }
 
     return 0;
 }

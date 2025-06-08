@@ -1011,6 +1011,7 @@ qemuBuildVirtioDevGetConfigDev(const virDomainDeviceDef *device,
         case VIR_DOMAIN_DEVICE_IOMMU:
         case VIR_DOMAIN_DEVICE_AUDIO:
         case VIR_DOMAIN_DEVICE_PSTORE:
+        case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
         case VIR_DOMAIN_DEVICE_LAST:
         default:
             break;

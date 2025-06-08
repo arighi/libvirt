@@ -6924,6 +6924,7 @@
             <ref name="shmem"/>
             <ref name="memorydev"/>
             <ref name="crypto"/>
+            <ref name="acpi-generic-initiator"/>
           </choice>
         </zeroOrMore>
         <zeroOrMore>
@@ -7663,6 +7664,19 @@
         </attribute>
       </optional>
       <empty/>
+    </element>
+  </define>
+
+  <define name="acpi-generic-initiator">
+    <element name="acpi-generic-initiator">
+      <interleave>
+        <element name="pci-dev">
+          <ref name="aliasName"/>
+        </element>
+        <element name="numa-node">
+          <ref name="unsignedInt"/>
+        </element>
+      </interleave>
     </element>
   </define>
 

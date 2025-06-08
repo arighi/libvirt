@@ -164,6 +164,7 @@ chValidateDomainDeviceDef(const virDomainDeviceDef *dev,
     case VIR_DOMAIN_DEVICE_CHR:
     case VIR_DOMAIN_DEVICE_HOSTDEV:
     case VIR_DOMAIN_DEVICE_RNG:
+    case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
         break;
 
     case VIR_DOMAIN_DEVICE_LEASE:

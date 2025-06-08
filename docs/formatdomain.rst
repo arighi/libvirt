@@ -9152,6 +9152,42 @@ The ``virtio`` IOMMU devices can further have ``address`` element as described
 in `Device addresses`_ (address has to by type of ``pci``).
 
 
+ACPI generic initiator
+~~~~~~~~~~~~~~~~~~~~~~
+
+The ACPI Generic Initiator device (GI) allows associating a PCI device with
+a specific NUMA node in the guest through the ACPI Generic Initiator
+namespace.
+
+This is required for certain accelerator configurations, such as NVIDIA
+Multi-Instance GPU (MIG), where each virtual instance must be exposed to
+the guest as a separate NUMA node.
+
+:since:`Since v11.5.0`
+
+::
+
+  ...
+  <acpi-generic-initiator>
+    <pci-dev>dev0</pci-dev>
+    <numa-node>1</numa-node>
+  </acpi-generic-initiator>
+  ...
+
+The ``acpi-generic-initiator`` element has the following child elements:
+
+``pci-dev``
+  Mandatory. Refers to the alias of a PCI device defined in the domain
+  configuration.
+
+``numa-node``
+  Mandatory. Specifies the guest NUMA node that the PCI device should be
+  associated with through the GI mechanism.
+
+Multiple ``acpi-generic-initiator`` elements can be defined to map different PCI
+devices to different guest NUMA nodes.
+
+
 Vsock
 ~~~~~
 
