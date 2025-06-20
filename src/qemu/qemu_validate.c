@@ -5024,6 +5024,21 @@ qemuValidateDomainDeviceDefPstore(virDomainPstoreDef *pstore,
 
 
 static int
+qemuValidateDomainDeviceAcpiInitiator(virDomainAcpiInitiatorDef *acpiinitiator G_GNUC_UNUSED,
+                                      const virDomainDef *def G_GNUC_UNUSED,
+                                      virQEMUCaps *qemuCaps)
+{
+    if (!virQEMUCapsGet(qemuCaps, QEMU_CAPS_ACPI_GENERIC_INITIATOR)) {
+        virReportError(VIR_ERR_CONFIG_UNSUPPORTED, "%s",
+                       _("acpi-generic-initiator device is not supported"));
+        return -1;
+    }
+
+    return 0;
+}
+
+
+static int
 qemuSoundCodecTypeToCaps(int type)
 {
     switch (type) {
@@ -5794,6 +5809,8 @@ qemuValidateDomainDeviceDef(const virDomainDeviceDef *dev,
         return qemuValidateDomainDeviceDefPstore(dev->data.pstore, def, qemuCaps);
 
     case VIR_DOMAIN_DEVICE_ACPI_INITIATOR:
+        return qemuValidateDomainDeviceAcpiInitiator(dev->data.acpiinitiator, def, qemuCaps);
+
     case VIR_DOMAIN_DEVICE_LEASE:
     case VIR_DOMAIN_DEVICE_PANIC:
     case VIR_DOMAIN_DEVICE_NONE:
